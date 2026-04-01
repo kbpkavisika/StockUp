@@ -42,3 +42,11 @@ export const updateItem = (id: number, name: string, quantity: number, category:
 export const deleteItem = (id: number) => {
   db.prepare('DELETE FROM items WHERE id = ?').run(id);
 };
+
+export const searchItems = (query: string): Item[] => {
+  return db.prepare('SELECT * FROM items WHERE name LIKE ? OR description LIKE ? ORDER BY timestamp DESC').all(`%${query}%`, `%${query}%`) as Item[];
+};
+
+export const getCategories = (): string[] => {
+  return db.prepare('SELECT DISTINCT category FROM items WHERE category IS NOT NULL').all().map(row => row.category);
+};
