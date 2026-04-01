@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const { initDB } = require('./src/database');
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -13,7 +14,10 @@ function createWindow() {
   win.loadURL('http://localhost:5173'); // Vite dev server
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  initDB();
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
