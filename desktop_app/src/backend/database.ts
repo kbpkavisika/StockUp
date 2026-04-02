@@ -1,6 +1,7 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import { app } from 'electron';
+const runtimeRequire = (window as any).require;
+const Database = runtimeRequire('better-sqlite3');
+const path = runtimeRequire('path');
+const nodeProcess = runtimeRequire('process');
 
 export interface Item {
   id: number;
@@ -11,7 +12,7 @@ export interface Item {
   timestamp: string;
 }
 
-const dbPath = path.join(app.getPath('userData'), 'inventory.db');
+const dbPath = path.join(nodeProcess.cwd(), 'inventory.db');
 const db = new Database(dbPath);
 
 export const initDB = () => {

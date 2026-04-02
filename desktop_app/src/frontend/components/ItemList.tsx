@@ -1,0 +1,37 @@
+import type { Item } from '../../backend/database';
+
+interface ItemListProps {
+  items: Item[];
+  onEdit: (item: Item) => void;
+  onDelete: (id: number) => void;
+}
+
+export default function ItemList({ items, onEdit, onDelete }: ItemListProps) {
+  return (
+    <table className="w-full border">
+      <thead>
+        <tr className="bg-gray-200">
+          <th className="border p-2">Title/Name</th>
+          <th className="border p-2">Quantity</th>
+          <th className="border p-2">Category</th>
+          <th className="border p-2">Description</th>
+          <th className="border p-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items.map(item => (
+          <tr key={item.id} className={item.quantity < 5 ? 'bg-red-100' : ''}>
+            <td className="border p-2">{item.name}</td>
+            <td className="border p-2">{item.quantity}</td>
+            <td className="border p-2">{item.category}</td>
+            <td className="border p-2">{item.description}</td>
+            <td className="border p-2">
+              <button onClick={() => onEdit(item)} className="bg-yellow-500 text-white px-2 py-1 mr-2">Edit</button>
+              <button onClick={() => onDelete(item.id)} className="bg-red-500 text-white px-2 py-1">Delete</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
