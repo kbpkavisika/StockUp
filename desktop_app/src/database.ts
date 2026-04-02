@@ -48,5 +48,5 @@ export const searchItems = (query: string): Item[] => {
 };
 
 export const getCategories = (): string[] => {
-  return db.prepare('SELECT DISTINCT category FROM items WHERE category IS NOT NULL').all().map(row => row.category);
+  return db.prepare('SELECT DISTINCT category FROM items WHERE category IS NOT NULL').all().map((row: any) => row.category);
 };
