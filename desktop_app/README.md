@@ -1,73 +1,74 @@
-# React + TypeScript + Vite
+# StockUp Desktop App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Desktop CRUD application built for the Zynologic assignment.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Electron (Windows desktop runtime)
+- React + TypeScript (UI)
+- Tailwind CSS (styling)
+- SQLite using better-sqlite3 (local persistence, offline)
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Create, read, update, delete items
+- Fields: id, title/name, description, timestamp (plus quantity/category for filtering)
+- Search by text
+- Category filter
+- Light/Dark theme toggle with local persistence
+- Local SQLite database (no external backend)
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+desktop_app/
+   electron.js              # Electron main process
+   src/
+      backend/
+         database.ts          # SQLite table + CRUD queries
+      frontend/
+         App.tsx              # Main UI screen
+         ThemeContext.tsx     # Theme state/persistence
+         components/
+            ItemForm.tsx
+            ItemList.tsx
+            SearchFilter.tsx
+         hooks/
+            useItems.ts        # UI state + CRUD handlers
+      main.tsx               # React entry
+      index.css              # Global styles
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Run
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+From desktop_app:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Install packages
+
+```bash
+npm install
 ```
+
+2. Start frontend dev server
+
+```bash
+npm run dev
+```
+
+3. In another terminal, start Electron
+
+```bash
+npm run electron
+```
+
+## Scripts
+
+- npm run dev
+- npm run electron
+- npm run build
+- npm run lint
+
+## Notes
+
+- App is fully offline.
+- SQLite DB file is created locally when app starts and initializes the table automatically.
