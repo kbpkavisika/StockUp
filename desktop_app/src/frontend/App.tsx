@@ -7,33 +7,32 @@ import type { Item } from '../backend/database';
 import { ThemeContext } from './ThemeContext';
 
 function App() {
-  const { items, categories, handleAdd, handleUpdate, handleDelete, handleSearch, handleFilter } = useItems();
+  const { items, handleAdd, handleUpdate, handleDelete, handleSearch } = useItems();
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
   const [editingItem, setEditingItem] = useState<Item | null>(null);
-  const [form, setForm] = useState({ name: '', quantity: 0, category: '', description: '' });
+  const [form, setForm] = useState({ name: '', description: '' });
 
   const handleEdit = (item: Item) => {
     setEditingItem(item);
-    setForm({ name: item.name, quantity: item.quantity, category: item.category, description: item.description });
+    setForm({ name: item.name, description: item.description });
   };
 
   const handleFormSubmit = () => {
-    if (form.name && form.quantity > 0) {
+    if (form.name) {
       if (editingItem) {
-        handleUpdate(editingItem.id, form.name, form.quantity, form.category, form.description);
+        handleUpdate(editingItem.id, form.name, form.description);
         setEditingItem(null);
       } else {
-        handleAdd(form.name, form.quantity, form.category, form.description);
+        handleAdd(form.name, form.description);
       }
-      setForm({ name: '', quantity: 0, category: '', description: '' });
+      setForm({ name: '', description: '' });
     }
   };
 
   const handleCancel = () => {
     setEditingItem(null);
-    setForm({ name: '', quantity: 0, category: '', description: '' });
+    setForm({ name: '', description: '' });
   };
 
   return (
@@ -51,23 +50,15 @@ function App() {
         
         <SearchFilter
           searchQuery={searchQuery}
-          filterCategory={filterCategory}
-          categories={categories}
           onSearchChange={setSearchQuery}
-          onFilterChange={setFilterCategory}
           onSearch={() => handleSearch(searchQuery)}
-          onFilter={() => handleFilter(filterCategory)}
         />
         
         <ItemForm
           name={form.name}
-          quantity={form.quantity}
-          category={form.category}
           description={form.description}
           isEditing={!!editingItem}
           onNameChange={(value) => setForm({ ...form, name: value })}
-          onQuantityChange={(value) => setForm({ ...form, quantity: value })}
-          onCategoryChange={(value) => setForm({ ...form, category: value })}
           onDescriptionChange={(value) => setForm({ ...form, description: value })}
           onSubmit={handleFormSubmit}
           onCancel={handleCancel}

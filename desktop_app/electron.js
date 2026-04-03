@@ -1,4 +1,8 @@
 import { app, BrowserWindow } from 'electron/main';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let mainWindow = null;
 
@@ -23,16 +27,14 @@ function createWindow() {
 	mainWindow.loadURL('http://localhost:5173').catch((error) => {
 		console.error('Failed to open Vite URL:', error);
 	});
+
+	// Open DevTools for debugging
+	mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
+	process.chdir(__dirname);
 	createWindow();
-
-	app.on('activate', () => {
-		if (BrowserWindow.getAllWindows().length === 0) {
-			createWindow();
-		}
-	});
 });
 
 app.on('window-all-closed', () => {

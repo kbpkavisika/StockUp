@@ -12,9 +12,8 @@ Desktop CRUD application built for the Zynologic assignment.
 ## Features
 
 - Create, read, update, delete items
-- Fields: id, title/name, description, timestamp (plus quantity/category for filtering)
+- Fields: id, title/name, description, timestamp
 - Search by text
-- Category filter
 - Light/Dark theme toggle with local persistence
 - Local SQLite database (no external backend)
 
@@ -39,15 +38,35 @@ desktop_app/
       index.css              # Global styles
 ```
 
-## Run
+## Setup and Run
 
-From desktop_app:
+From desktop_app directory:
 
-1. Install packages
+1. Install dependencies
 
 ```bash
 npm install
 ```
+
+2. Build the app
+
+```bash
+npm run build
+```
+
+3. Start the development server
+
+```bash
+npm run dev
+```
+
+4. In another terminal, run Electron
+
+```bash
+npm run electron
+```
+
+The app will open in an Electron window.
 
 2. Start frontend dev server
 
