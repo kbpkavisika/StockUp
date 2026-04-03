@@ -1,12 +1,8 @@
 interface ItemFormProps {
   name: string;
-  quantity: number;
-  category: string;
   description: string;
   isEditing: boolean;
   onNameChange: (value: string) => void;
-  onQuantityChange: (value: number) => void;
-  onCategoryChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -14,13 +10,9 @@ interface ItemFormProps {
 
 export default function ItemForm({
   name,
-  quantity,
-  category,
   description,
   isEditing,
   onNameChange,
-  onQuantityChange,
-  onCategoryChange,
   onDescriptionChange,
   onSubmit,
   onCancel
@@ -33,20 +25,6 @@ export default function ItemForm({
         placeholder="Title/Name"
         value={name}
         onChange={(e) => onNameChange(e.target.value)}
-        className="border p-2 mr-2"
-      />
-      <input
-        type="number"
-        placeholder="Quantity"
-        value={quantity}
-        onChange={(e) => onQuantityChange(parseInt(e.target.value) || 0)}
-        className="border p-2 mr-2"
-      />
-      <input
-        type="text"
-        placeholder="Category"
-        value={category}
-        onChange={(e) => onCategoryChange(e.target.value)}
         className="border p-2 mr-2"
       />
       <input
