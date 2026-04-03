@@ -11,13 +11,13 @@ const variantClass = {
   primary: 'bg-blue-600',
   secondary: 'bg-slate-500',
   danger: 'bg-red-600',
-  success: 'bg-emerald-600',
+  success: 'bg-green-600',
 };
 
 export default function PrimaryButton({ label, onPress, variant = 'primary' }: PrimaryButtonProps) {
   return (
-    <TouchableOpacity className={`rounded-lg px-4 py-3 ${variantClass[variant]}`} onPress={onPress}>
-      <Text className="text-center font-semibold text-white">{label}</Text>
+    <TouchableOpacity className={`rounded-xl px-6 py-3 shadow-lg ${variantClass[variant]}`} onPress={onPress}>
+      <Text className="text-center font-bold text-white text-base">{label}</Text>
     </TouchableOpacity>
   );
 }
