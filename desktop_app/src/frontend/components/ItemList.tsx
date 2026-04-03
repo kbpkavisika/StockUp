@@ -25,7 +25,7 @@ export default function ItemList({ items, onEdit, onDelete }: ItemListProps) {
             <td className="border p-2">{item.timestamp}</td>
             <td className="border p-2">
               <button onClick={() => onEdit(item)} className="bg-yellow-500 text-white px-2 py-1 mr-2">Edit</button>
-              <button onClick={() => onDelete(item.id)} className="bg-red-500 text-white px-2 py-1">Delete</button>
+              <button onClick={() => { if (window.confirm('Are you sure you want to delete this item?')) onDelete(item.id); }} className="bg-red-500 text-white px-2 py-1">Delete</button>
             </td>
           </tr>
         ))}

@@ -13,40 +13,64 @@ export function useItems() {
   const [items, setItems] = useState<Item[]>([]);
 
   const loadItems = () => {
-    const allItems = getItems();
-    setItems(allItems);
+    try {
+      const allItems = getItems();
+      setItems(allItems);
+    } catch (error) {
+      window.alert('Error loading items: ' + (error as Error).message);
+    }
   };
 
   useEffect(() => {
-    initDB();
-    loadItems();
+    try {
+      initDB();
+      loadItems();
+    } catch (error) {
+      window.alert('Error initializing database: ' + (error as Error).message);
+    }
   }, []);
 
   const handleAdd = (name: string, description: string) => {
     if (name) {
-      addItem(name, description);
-      loadItems();
+      try {
+        addItem(name, description);
+        loadItems();
+      } catch (error) {
+        window.alert('Error adding item: ' + (error as Error).message);
+      }
     }
   };
 
   const handleUpdate = (id: number, name: string, description: string) => {
     if (name) {
-      updateItem(id, name, description);
-      loadItems();
+      try {
+        updateItem(id, name, description);
+        loadItems();
+      } catch (error) {
+        window.alert('Error updating item: ' + (error as Error).message);
+      }
     }
   };
 
   const handleDelete = (id: number) => {
-    deleteItem(id);
-    loadItems();
+    try {
+      deleteItem(id);
+      loadItems();
+    } catch (error) {
+      window.alert('Error deleting item: ' + (error as Error).message);
+    }
   };
 
   const handleSearch = (query: string) => {
-    if (query) {
-      const results = searchItems(query);
-      setItems(results);
-    } else {
-      loadItems();
+    try {
+      if (query) {
+        const results = searchItems(query);
+        setItems(results);
+      } else {
+        loadItems();
+      }
+    } catch (error) {
+      window.alert('Error searching items: ' + (error as Error).message);
     }
   };
 

@@ -2,6 +2,7 @@ interface ItemFormProps {
   name: string;
   description: string;
   isEditing: boolean;
+  error?: string;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onSubmit: () => void;
@@ -12,6 +13,7 @@ export default function ItemForm({
   name,
   description,
   isEditing,
+  error,
   onNameChange,
   onDescriptionChange,
   onSubmit,
@@ -20,6 +22,7 @@ export default function ItemForm({
   return (
     <div className="mb-4 p-4 border">
       <h2>{isEditing ? 'Edit Item' : 'Add Item'}</h2>
+      {error && <p className="text-red-500 mb-2">{error}</p>}
       <input
         type="text"
         placeholder="Title/Name"
