@@ -9,10 +9,8 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
-    "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.33",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
@@ -25,6 +23,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "babel-preset-expo": "~54.0.10",
     "typescript": "~5.9.2"
   },
   "private": true

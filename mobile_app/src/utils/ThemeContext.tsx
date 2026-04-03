@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
-import { getSetting, initDatabase, setSetting } from './database';
+import { getThemeSetting, initializeDatabase, setThemeSetting } from './database';
 
 interface ThemeContextType {
   isDark: boolean;
@@ -13,21 +13,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    initDatabase(() => {
-      getSetting('theme', (value) => {
-        if (value === 'dark') {
-          setIsDark(true);
-        } else {
-          setIsDark(Appearance.getColorScheme() === 'dark');
-        }
-      });
-    });
+    initializeDatabase();
+    const theme = getThemeSetting();
+
+    if (theme) {
+      setIsDark(theme === 'dark');
+      return;
+    }
+
+    setIsDark(Appearance.getColorScheme() === 'dark');
   }, []);
 
   const toggleTheme = () => {
     const newTheme = !isDark;
     setIsDark(newTheme);
-    setSetting('theme', newTheme ? 'dark' : 'light');
+    setThemeSetting(newTheme ? 'dark' : 'light');
   };
 
   return (

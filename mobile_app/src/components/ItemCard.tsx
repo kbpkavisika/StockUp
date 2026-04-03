@@ -12,15 +12,15 @@ interface ItemCardProps {
 
 export default function ItemCard({ item, isDark, onEdit, onDelete }: ItemCardProps) {
   return (
-    <View className={`mb-3 rounded-xl border p-3 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}>
-      <Text className={`text-base font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</Text>
-      <Text className={`mt-1 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{item.description}</Text>
-      <Text className={`mt-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.timestamp}</Text>
-      <View className="mt-3 flex-row gap-2">
-        <View className="flex-1">
-          <PrimaryButton label="Edit" variant="success" onPress={() => onEdit(item)} />
-        </View>
-        <View className="flex-1">
+    <View className={`mb-5 self-center w-full max-w-[400px] rounded-2xl border-2 px-5 pb-5 pt-6 shadow-lg ${isDark ? 'border-slate-700 bg-slate-800 shadow-none' : 'border-slate-300 bg-white'}`}>
+      <Text className={`text-center text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</Text>
+      <Text className={`mt-2 text-center text-base ${isDark ? 'text-white' : 'text-slate-600'}`}>{item.description}</Text>
+      
+      <View className={`mt-5 w-full border-t pt-4 flex-row items-center justify-between ${isDark ? 'border-slate-600' : 'border-slate-200'}`}>
+        <Text className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-slate-500'}`}>{item.timestamp}</Text>
+        
+        <View className="flex-row gap-3">
+          <PrimaryButton label="Update" variant="success" onPress={() => onEdit(item)} />
           <PrimaryButton label="Delete" variant="danger" onPress={() => onDelete(item.id)} />
         </View>
       </View>
