@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useItems } from './hooks/useItems';
 import ItemForm from './components/ItemForm';
 import ItemList from './components/ItemList';
@@ -12,6 +12,11 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [form, setForm] = useState({ name: '', description: '' });
+  const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    handleSearch(searchQuery);
+  }, [searchQuery, handleSearch]);
 
   const handleEdit = (item: Item) => {
     setEditingItem(item);
@@ -19,20 +24,24 @@ function App() {
   };
 
   const handleFormSubmit = () => {
-    if (form.name) {
-      if (editingItem) {
-        handleUpdate(editingItem.id, form.name, form.description);
-        setEditingItem(null);
-      } else {
-        handleAdd(form.name, form.description);
-      }
-      setForm({ name: '', description: '' });
+    if (!form.name.trim()) {
+      setFormError('Name is required');
+      return;
     }
+    setFormError('');
+    if (editingItem) {
+      handleUpdate(editingItem.id, form.name, form.description);
+      setEditingItem(null);
+    } else {
+      handleAdd(form.name, form.description);
+    }
+    setForm({ name: '', description: '' });
   };
 
   const handleCancel = () => {
     setEditingItem(null);
     setForm({ name: '', description: '' });
+    setFormError('');
   };
 
   return (
@@ -51,13 +60,13 @@ function App() {
         <SearchFilter
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onSearch={() => handleSearch(searchQuery)}
         />
         
         <ItemForm
           name={form.name}
           description={form.description}
           isEditing={!!editingItem}
+          error={formError}
           onNameChange={(value) => setForm({ ...form, name: value })}
           onDescriptionChange={(value) => setForm({ ...form, description: value })}
           onSubmit={handleFormSubmit}
