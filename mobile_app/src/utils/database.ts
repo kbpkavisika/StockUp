@@ -1,54 +1,51 @@
 import { openDatabaseSync } from 'expo-sqlite';
+import type { Item } from '../types/item';
 
 const db = openDatabaseSync('items.db');
+let isInitialized = false;
 
-export interface Item {
-  id: number;
-  title: string;
-  description: string;
-  timestamp: string;
-}
+export function initializeDatabase() {
+  if (isInitialized) return;
 
-export const initDatabase = (onReady?: () => void) => {
   db.execSync(
-    'CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);'
+    'CREATE TABLE IF NOT EXISTS items (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);'
   );
   db.execSync('CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);');
-  if (onReady) {
-    onReady();
+
+  isInitialized = true;
+}
+
+export function getItems(searchQuery = ''): Item[] {
+  const query = searchQuery.trim();
+  if (!query) {
+    return db.getAllSync<Item>('SELECT * FROM items ORDER BY timestamp DESC, id DESC;');
   }
-};
 
-export const getItems = (callback: (items: Item[]) => void) => {
-  const rows = db.getAllSync<Item>('SELECT * FROM items ORDER BY timestamp DESC;');
-  callback(rows);
-};
-
-export const addItem = (title: string, description: string) => {
-  db.runSync('INSERT INTO items (title, description) VALUES (?, ?);', [title, description]);
-};
-
-export const updateItem = (id: number, title: string, description: string) => {
-  db.runSync('UPDATE items SET title = ?, description = ? WHERE id = ?;', [title, description, id]);
-};
-
-export const deleteItem = (id: number) => {
-  db.runSync('DELETE FROM items WHERE id = ?;', [id]);
-};
-
-export const searchItems = (query: string, callback: (items: Item[]) => void) => {
-  const rows = db.getAllSync<Item>(
-    'SELECT * FROM items WHERE title LIKE ? OR description LIKE ? ORDER BY timestamp DESC;',
+  return db.getAllSync<Item>(
+    'SELECT * FROM items WHERE title LIKE ? OR description LIKE ? ORDER BY timestamp DESC, id DESC;',
     [`%${query}%`, `%${query}%`]
   );
-  callback(rows);
-};
+}
 
-export const getSetting = (key: string, callback: (value: string | null) => void) => {
-  const row = db.getFirstSync<{ value: string }>('SELECT value FROM settings WHERE key = ?;', [key]);
-  callback(row ? row.value : null);
-};
+export function addItem(title: string, description: string) {
+  db.runSync('INSERT INTO items (title, description) VALUES (?, ?);', [title.trim(), description.trim()]);
+}
 
-export const setSetting = (key: string, value: string) => {
-  db.runSync('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?);', [key, value]);
-};
+export function updateItem(id: number, title: string, description: string) {
+  db.runSync('UPDATE items SET title = ?, description = ? WHERE id = ?;', [title.trim(), description.trim(), id]);
+}
+
+export function deleteItem(id: number) {
+  db.runSync('DELETE FROM items WHERE id = ?;', [id]);
+}
+
+export function getThemeSetting(): 'light' | 'dark' | null {
+  const row = db.getFirstSync<{ value: string }>('SELECT value FROM settings WHERE key = ?;', ['theme']);
+  if (!row) return null;
+
+  return row.value === 'dark' ? 'dark' : 'light';
+}
+
+export function setThemeSetting(theme: 'light' | 'dark') {
+  db.runSync('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?);', ['theme', theme]);
+}
