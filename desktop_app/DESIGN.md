@@ -153,17 +153,19 @@ Same scale as mobile; desktop usage differs.
 └──────────┴───────────────────────────────────────────┘
 ```
 
-- Sidebar: 240px, `surface-muted`, right hairline 1px `border`. Collapses to a 72px icon rail below 1100px window width.
+- Sidebar: 240px, `surface-muted`, right hairline 1px `border`. Collapses to a 72px icon rail below 1024px.
 - Content: 12-column fluid grid, column gap 24, page padding 32 (24 in compact). Max content width 1440, left-aligned (no centred island on wide screens).
 - Side panel (forms): 480px, slides in from the right over the content.
 
 ### Breakpoints (window width)
 
 ```
-compact   960–1099   sidebar collapsed to rail · page padding 24
-regular   1100–1439  sidebar expanded · page padding 32
+compact   < 1024     sidebar collapsed to rail · page padding 24
+regular   1024–1439  sidebar expanded · page padding 32
 wide      1440+      content capped at 1440 · card grids go 4-up
 ```
+
+Breakpoints are measured on the web contents (inner) width, which is ~16px narrower than the window on Windows — so the default 1100px window is "regular" and the 960px minimum is "compact".
 
 Set the Electron `BrowserWindow` `minWidth: 960, minHeight: 640`.
 
@@ -255,7 +257,7 @@ Spec line: `h 40 · radius 8 · 1px #8C9297 · label 13/600 above, gap 6 · padd
 
 | Variant / State | Background | Border | Notes |
 |---|---|---|---|
-| Search / rest | `#F1F2F3` | none | h 40, radius full, leading search icon 16 `#63686D`, placeholder "Search items" + shortcut hint `Ctrl K` in a 4-radius `mono` keycap on the right |
+| Search / rest | `#F1F2F3` | none | h 40, radius full, leading search icon 16 `#63686D`, placeholder "Search items" (no shortcut hint in the field) |
 | Search / focus | `#FFFFFF` | 1.5px `#101112` | trailing `close` icon button clears the query |
 | Field / rest | `#FFFFFF` | 1px `#8C9297` | |
 | Field / hover | `#FFFFFF` | 1px `#63686D` | |
@@ -398,7 +400,7 @@ Spec line: `w 240 · bg surface-muted · 1px border right · item h 36 radius 8 
 - Group label: `overline` `secondary`, padding 16 12 4.
 - Item: h 36, radius 8, margin 0 8, padding 0 12, icon 20 + gap 12 + `label` (13/600 in active, 13/500 `secondary` inactive). Hover bg `#F1F2F3`.
 - Active item: bg `surface`, text `primary`, icon filled where it has a fill state, 3px × 20px `accent` bar on the left edge of the sidebar aligned to the item.
-- Items: Items, Low stock (count badge), Categories, Reports; bottom group: Settings, theme toggle.
+- Items: Items, Low stock (count badge), Categories, Reports; bottom group: Settings. Theme lives in Settings → Appearance, not the sidebar.
 - Collapsed rail (72): icons only, centred, tooltips on hover.
 
 ### Page header
@@ -457,7 +459,7 @@ Respect `prefers-reduced-motion`: drop scale and slide transitions, keep fades �
 Five StockUp screens at 1100 × 760 (default window), built only from the tokens above.
 
 ### 01 · Items (main view)
-Sidebar (Items active, accent bar) → page header ("Items" + "312 items", Primary "Add item" with `plus` icon) → toolbar (search "Search items" + `Ctrl K` keycap, chips "Sort: Newest", "Status: All") → data table: checkbox · Name (`label` 14/600) · Description (`text-secondary`, truncated) · Stock (badge) · Updated (`mono`) · actions (`edit`, `more`) → pagination footer "1–50 of 312".
+Sidebar (Items active, accent bar) → page header ("Items" + "312 items", Primary "Add item" with `plus` icon) → toolbar (search "Search items", chips "Sort: Newest", "Status: All") → data table: checkbox · Name (`label` 14/600) · Description (`text-secondary`, truncated) · Stock (badge) · Updated (`mono`) · actions (`edit`, `more`) → pagination footer "1–50 of 312".
 
 ### 02 · Add / edit item (side panel)
 Items table stays visible under the scrim → 480 side panel: header "Add item" + close → Name (Field / required) → Description (Textarea) → Quantity (Number) → footer Cancel / Save. Validation error example: Name field in error state, "Name is required".
@@ -561,4 +563,4 @@ Import the weights in `src/main.tsx`: Archivo 400/500/600/700/800, IBM Plex Mono
 | `src/frontend/components/SearchFilter.tsx` | Search input (§06) + filter chips, inside the Toolbar |
 | `src/frontend/components/ItemList.tsx` | Data table; row actions via `edit` + `more` icon buttons; delete via Dialog instead of `window.confirm` |
 | `src/frontend/components/ItemForm.tsx` | Side panel with Field / required (Name) and Textarea (Description) |
-| Theme button in `App.tsx` | Sidebar theme item + Settings → Appearance |
+| Theme button in `App.tsx` | Settings → Appearance |

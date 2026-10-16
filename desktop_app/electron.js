@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron/main';
+import { app, BrowserWindow, nativeTheme } from 'electron/main';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,6 +10,11 @@ function createWindow() {
 	mainWindow = new BrowserWindow({
 		width: 1100,
 		height: 760,
+		minWidth: 960,
+		minHeight: 640,
+		title: 'StockUp',
+		// Match the surface token so there is no white flash before the UI paints
+		backgroundColor: nativeTheme.shouldUseDarkColors ? '#101112' : '#FFFFFF',
 		webPreferences: {
 			nodeIntegration: true,
 			contextIsolation: false,

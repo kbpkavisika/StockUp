@@ -1,44 +1,52 @@
-import { createContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { ThemeContext, type Theme, type ThemePreference } from './theme';
 
-type Theme = 'light' | 'dark';
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-}
-
-export const ThemeContext = createContext<ThemeContextType>({
-  theme: 'light',
-  toggleTheme: () => {},
-});
+const readPreference = (): ThemePreference => {
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch {
+    // Storage unavailable; fall back to the OS setting
+  }
+  return 'system';
+};
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [preference, setPreferenceState] = useState<ThemePreference>(readPreference);
+  const [systemDark, setSystemDark] = useState(darkQuery.matches);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
-    }
+    const onChange = (event: MediaQueryListEvent) => setSystemDark(event.matches);
+    darkQuery.addEventListener('change', onChange);
+    return () => darkQuery.removeEventListener('change', onChange);
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  const theme: Theme = preference === 'system' ? (systemDark ? 'dark' : 'light') : preference;
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
+
+  const setPreference = (next: ThemePreference) => {
+    setPreferenceState(next);
+    try {
+      if (next === 'system') {
+        localStorage.removeItem('theme');
+      } else {
+        localStorage.setItem('theme', next);
+      }
+    } catch {
+      // Preference just won't persist
     }
   };
 
+  const toggleTheme = () => setPreference(theme === 'light' ? 'dark' : 'light');
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, preference, setPreference, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

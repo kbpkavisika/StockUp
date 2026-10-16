@@ -1,84 +1,76 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   initDB,
   getItems,
   addItem,
   updateItem,
-  deleteItem,
+  deleteItems,
+  restoreItems,
   searchItems,
   type Item,
 } from '../../backend/database';
 
-export function useItems() {
+export function useItems(onError: (message: string) => void) {
   const [items, setItems] = useState<Item[]>([]);
+  const [query, setQuery] = useState('');
+  const onErrorRef = useRef(onError);
+  const queryRef = useRef('');
 
-  const loadItems = () => {
-    try {
-      const allItems = getItems();
-      setItems(allItems);
-    } catch (error) {
-      window.alert('Error loading items: ' + (error as Error).message);
-    }
-  };
+  const trimmedQuery = query.trim();
 
   useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
+
+  useEffect(() => {
+    queryRef.current = trimmedQuery;
+  }, [trimmedQuery]);
+
+  const attempt = useCallback((label: string, action: () => void) => {
     try {
-      initDB();
-      loadItems();
+      action();
+      return true;
     } catch (error) {
-      window.alert('Error initializing database: ' + (error as Error).message);
+      onErrorRef.current(`${label}: ${(error as Error).message}`);
+      return false;
     }
   }, []);
 
-  const handleAdd = (name: string, description: string) => {
-    if (name) {
-      try {
-        addItem(name, description);
-        loadItems();
-      } catch (error) {
-        window.alert('Error adding item: ' + (error as Error).message);
-      }
-    }
-  };
+  // Always reloads with the latest search, even when called from an older closure (e.g. Undo)
+  const loadItems = useCallback(() => {
+    attempt("Couldn't load items", () => {
+      const current = queryRef.current;
+      setItems(current ? searchItems(current) : getItems());
+    });
+  }, [attempt]);
 
-  const handleUpdate = (id: number, name: string, description: string) => {
-    if (name) {
-      try {
-        updateItem(id, name, description);
-        loadItems();
-      } catch (error) {
-        window.alert('Error updating item: ' + (error as Error).message);
-      }
-    }
-  };
+  const initialized = useRef(false);
 
-  const handleDelete = (id: number) => {
-    try {
-      deleteItem(id);
-      loadItems();
-    } catch (error) {
-      window.alert('Error deleting item: ' + (error as Error).message);
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = attempt("Couldn't open the database", initDB);
+      if (!initialized.current) return;
     }
-  };
+    loadItems();
+  }, [attempt, loadItems, trimmedQuery]);
 
-  const handleSearch = (query: string) => {
-    try {
-      if (query) {
-        const results = searchItems(query);
-        setItems(results);
-      } else {
-        loadItems();
-      }
-    } catch (error) {
-      window.alert('Error searching items: ' + (error as Error).message);
-    }
+  const mutate = (label: string, action: () => void) => {
+    const ok = attempt(label, action);
+    loadItems();
+    return ok;
   };
 
   return {
     items,
-    handleAdd,
-    handleUpdate,
-    handleDelete,
-    handleSearch
+    query,
+    setQuery,
+    handleAdd: (name: string, description: string) =>
+      mutate("Couldn't add item", () => addItem(name, description)),
+    handleUpdate: (id: number, name: string, description: string) =>
+      mutate("Couldn't save changes", () => updateItem(id, name, description)),
+    handleDelete: (ids: number[]) =>
+      mutate("Couldn't delete", () => deleteItems(ids)),
+    handleRestore: (deleted: Item[]) =>
+      mutate("Couldn't restore", () => restoreItems(deleted)),
   };
 }
