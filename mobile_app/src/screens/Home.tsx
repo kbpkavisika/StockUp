@@ -1,87 +1,166 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, Alert, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, ScrollView, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { deleteItem, getItems, initializeDatabase } from '../utils/database';
-import { useTheme } from '../utils/ThemeContext';
-import PrimaryButton from '../components/PrimaryButton';
-import ItemCard from '../components/ItemCard';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheet from '../components/BottomSheet';
+import Icon from '../components/Icon';
+import ItemRow from '../components/ItemRow';
+import SearchBar from '../components/SearchBar';
+import TopBar from '../components/TopBar';
+import { Button, Chip, IconButton, OptionRow, Text } from '../components/ui';
+import { useTheme } from '../theme/ThemeContext';
 import type { Item } from '../types/item';
 import type { RootStackParamList } from '../types/navigation';
+import { getItems, subscribeToItems } from '../utils/database';
+import { SORT_OPTIONS, sortItems, type SortKey } from '../utils/sort';
+import { stockStatus, type StockStatus } from '../utils/stock';
+
+type StockFilter = 'all' | Exclude<StockStatus, 'in'>;
+
+const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
 export default function Home() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [items, setItems] = useState<Item[]>([]);
   const [search, setSearch] = useState('');
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { isDark, toggleTheme } = useTheme();
+  const [filter, setFilter] = useState<StockFilter>('all');
+  const [sort, setSort] = useState<SortKey>('newest');
+  const [sortOpen, setSortOpen] = useState(false);
 
-  const loadItems = useCallback(() => {
-    setItems(getItems(search));
-  }, [search]);
-
-  useEffect(() => {
-    initializeDatabase();
-    loadItems();
-  }, [loadItems]);
-
+  // Reload on focus, on search changes, and whenever items change (save, delete, Undo)
   useFocusEffect(
     useCallback(() => {
-      loadItems();
-    }, [loadItems])
+      const load = () => setItems(getItems(search));
+      load();
+      return subscribeToItems(load);
+    }, [search]),
   );
 
-  const handleDelete = (id: number) => {
-    Alert.alert('Delete', 'Are you sure?', [
-      { text: 'Cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          deleteItem(id);
-          loadItems();
-        },
-      },
-    ]);
-  };
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity onPress={toggleTheme} className={`rounded-full px-3 py-1.5 ${isDark ? 'bg-slate-700' : 'bg-blue-500'}`}>
-          <Text className="font-semibold text-white text-xs">{isDark ? 'Light' : 'Dark'}</Text>
-        </TouchableOpacity>
-      ),
+  const counts = useMemo(() => {
+    const result = { low: 0, out: 0 };
+    items.forEach((item) => {
+      const status = stockStatus(item);
+      if (status !== 'in') result[status] += 1;
     });
-  }, [navigation, isDark, toggleTheme]);
+    return result;
+  }, [items]);
+
+  const visibleItems = useMemo(
+    () => sortItems(filter === 'all' ? items : items.filter((item) => stockStatus(item) === filter), sort),
+    [items, filter, sort],
+  );
+
+  const openItem = (item?: Item) => navigation.navigate('ItemForm', item ? { itemId: item.id } : undefined);
+  const sortLabel = SORT_OPTIONS.find((option) => option.key === sort)?.label;
+  const searching = search.trim().length > 0;
+
+  const header = (
+    <View className="gap-4 px-4 pb-3 pt-6">
+      <View className="gap-1">
+        <Text variant="h1" accessibilityRole="header">
+          Inventory
+        </Text>
+        <Text variant="caption">
+          {searching ? plural(items.length, 'result') : plural(items.length, 'item')}
+          {counts.low > 0 && ` · ${counts.low} low`}
+          {counts.out > 0 && ` · ${counts.out} out of stock`}
+        </Text>
+      </View>
+      <SearchBar value={search} onChangeText={setSearch} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2" className="-mx-4" contentContainerStyle={{ paddingHorizontal: 16 }}>
+        <Chip label="All" selected={filter === 'all'} onPress={() => setFilter('all')} />
+        <Chip label={`Low stock · ${counts.low}`} selected={filter === 'low'} onPress={() => setFilter(filter === 'low' ? 'all' : 'low')} />
+        <Chip label={`Out of stock · ${counts.out}`} selected={filter === 'out'} onPress={() => setFilter(filter === 'out' ? 'all' : 'out')} />
+        <Chip label={`Sort: ${sortLabel}`} icon="chevron" selected={sort !== 'newest'} onPress={() => setSortOpen(true)} />
+      </ScrollView>
+    </View>
+  );
 
   return (
-    <View className={`flex-1 p-4 ${isDark ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      <TextInput
-        className={`mb-4 rounded-xl border px-4 py-3 shadow-sm ${isDark ? 'border-slate-700 bg-slate-800 text-white' : 'border-slate-200 bg-white text-slate-900'}`}
-        placeholder="Search"
-        value={search}
-        onChangeText={setSearch}
-        placeholderTextColor={isDark ? '#94A3B8' : '#64748B'}
-      />
-      <PrimaryButton label="Add New Item" onPress={() => navigation.navigate('ItemForm')} />
-      <FlatList
-        className="mt-4"
-        data={items}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={
-          <View className="self-center mt-10 w-full max-w-[400px] rounded-2xl border-2 border-dashed border-slate-300 p-8">
-            <Text className={`text-center text-base font-semibold ${isDark ? 'text-white' : 'text-slate-500'}`}>No items yet. Add your first item.</Text>
-          </View>
+    <View className="flex-1 bg-surface">
+      <TopBar
+        right={
+          <>
+            <IconButton icon="settings" label="Settings" onPress={() => navigation.navigate('Settings')} />
+            <IconButton icon="plus" label="Add item" onPress={() => openItem()} />
+          </>
         }
-        renderItem={({ item }) => (
-          <ItemCard
-            item={item}
-            isDark={isDark}
-            onEdit={(selectedItem) => navigation.navigate('ItemForm', { item: selectedItem })}
-            onDelete={handleDelete}
-          />
-        )}
       />
+
+      <FlatList
+        data={visibleItems}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => <ItemRow item={item} onPress={openItem} />}
+        ListHeaderComponent={header}
+        ListHeaderComponentStyle={{ borderBottomWidth: visibleItems.length > 0 ? 1 : 0, borderColor: colors.border }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        ListEmptyComponent={
+          <EmptyState
+            kind={searching ? 'search' : filter !== 'all' ? 'filter' : 'empty'}
+            query={search.trim()}
+            onAdd={() => openItem()}
+            onClear={() => {
+              setSearch('');
+              setFilter('all');
+            }}
+          />
+        }
+      />
+
+      <BottomSheet visible={sortOpen} title="Sort by" onClose={() => setSortOpen(false)}>
+        {SORT_OPTIONS.map((option) => (
+          <OptionRow
+            key={option.key}
+            label={option.label}
+            selected={option.key === sort}
+            onPress={() => {
+              setSort(option.key);
+              setSortOpen(false);
+            }}
+          />
+        ))}
+      </BottomSheet>
+    </View>
+  );
+}
+
+function EmptyState({
+  kind,
+  query,
+  onAdd,
+  onClear,
+}: {
+  kind: 'empty' | 'search' | 'filter';
+  query: string;
+  onAdd: () => void;
+  onClear: () => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <View className="items-center px-16 py-16">
+      <Icon name={kind === 'empty' ? 'box' : 'search'} size={24} color={colors.secondary} />
+      <Text variant="h2" className="mt-4 text-center">
+        {kind === 'empty' ? 'No items yet' : kind === 'search' ? `No matches for “${query}”` : 'Nothing here'}
+      </Text>
+      <Text variant="caption" className="mt-2 text-center">
+        {kind === 'empty'
+          ? 'Add your first item to start tracking stock.'
+          : kind === 'search'
+            ? 'Try a different name, SKU or category.'
+            : 'No items match this filter.'}
+      </Text>
+      <View className="mt-6">
+        {kind === 'empty' ? (
+          <Button label="Add item" icon="plus" onPress={onAdd} />
+        ) : (
+          <Button label={kind === 'search' ? 'Clear search' : 'Show all items'} variant="secondary" size="md" onPress={onClear} />
+        )}
+      </View>
     </View>
   );
 }

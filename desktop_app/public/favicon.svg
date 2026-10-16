@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-97 -107 194 214"><style>@media (prefers-color-scheme: dark){.mark{fill:#F5F5F6}}</style>
+  <defs>
+    <mask id="stockup-cut" maskUnits="userSpaceOnUse" x="-97" y="-107" width="194" height="214">
+      <path d="M-16 -102.76A32 32 0 0 1 16 -102.76L80.99 -65.24A32 32 0 0 1 96.99 -37.52L96.99 37.52A32 32 0 0 1 80.99 65.24L16 102.76A32 32 0 0 1 -16 102.76L-80.99 65.24A32 32 0 0 1 -96.99 37.52L-96.99 -37.52A32 32 0 0 1 -80.99 -65.24Z" fill="#fff"/>
+      <g fill="none" stroke="#000" stroke-width="10.5">
+        <path d="M-51.5 -130V-40.13A18 18 0 0 0 -42.5 -24.54L42.5 24.54A18 18 0 0 1 51.5 40.13V130"/>
+        <path d="M2 -57.6L122 11.68M-2 57.6L-122 -11.68" stroke-linecap="round"/>
+      </g>
+    </mask>
+  </defs>
+  <path class="mark" d="M-16 -102.76A32 32 0 0 1 16 -102.76L80.99 -65.24A32 32 0 0 1 96.99 -37.52L96.99 37.52A32 32 0 0 1 80.99 65.24L16 102.76A32 32 0 0 1 -16 102.76L-80.99 65.24A32 32 0 0 1 -96.99 37.52L-96.99 -37.52A32 32 0 0 1 -80.99 -65.24Z" fill="#101112" mask="url(#stockup-cut)"/>
+</svg>
