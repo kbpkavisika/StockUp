@@ -1,5 +1,6 @@
 import { shortcut } from '../utils/format';
 import Icon, { type IconName } from './Icon';
+import Logo from './Logo';
 import { IconButton, Tooltip } from './ui';
 
 export type Page = 'items' | 'settings';
@@ -21,7 +22,12 @@ export default function Sidebar({ page, collapsed, onNavigate, onToggleCollapsed
       }`}
     >
       <div className={`flex h-14 shrink-0 items-center ${collapsed ? 'justify-center' : 'justify-between pl-5 pr-3'}`}>
-        {!collapsed && <span className="text-[20px] font-extrabold leading-none tracking-[-0.03em]">stockup</span>}
+        {!collapsed && (
+          <span className="flex items-center gap-2">
+            <Logo size={22} />
+            <span className="text-[20px] font-extrabold leading-none tracking-[-0.03em]">stockup</span>
+          </span>
+        )}
         <IconButton
           icon="sidebar"
           label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

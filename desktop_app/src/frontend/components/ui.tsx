@@ -365,15 +365,19 @@ export function Field({
   label,
   required = false,
   error,
+  hint,
   children,
 }: {
   label: string;
   required?: boolean;
   error?: string;
+  /** Helper text shown under the field when there is no error */
+  hint?: string;
   children: (props: { id: string; invalid: boolean; describedBy?: string }) => ReactNode;
 }) {
   const id = useId();
   const errorId = `${id}-error`;
+  const hintId = `${id}-hint`;
   return (
     <div>
       <div className="mb-1.5 flex items-baseline gap-2">
@@ -382,11 +386,17 @@ export function Field({
         </label>
         {required && <span className="text-label text-secondary">Required</span>}
       </div>
-      {children({ id, invalid: !!error, describedBy: error ? errorId : undefined })}
-      {error && (
+      {children({ id, invalid: !!error, describedBy: error ? errorId : hint ? hintId : undefined })}
+      {error ? (
         <p id={errorId} className="mt-1.5 text-caption text-error">
           {error}
         </p>
+      ) : (
+        hint && (
+          <p id={hintId} className="mt-1.5 text-caption text-secondary">
+            {hint}
+          </p>
+        )
       )}
     </div>
   );
@@ -398,6 +408,24 @@ export function TextInput({ invalid = false, className = '', ...props }: Compone
 
 export function TextArea({ invalid = false, className = '', ...props }: ComponentProps<'textarea'> & { invalid?: boolean }) {
   return <textarea aria-invalid={invalid} className={`min-h-24 resize-y py-2.5 ${fieldClass(invalid)} ${className}`} {...props} />;
+}
+
+/* ---------- Badge — DESIGN.md §06 Badges ---------- */
+
+const badgeTones = {
+  success: 'bg-success-tint text-success',
+  warning: 'bg-warning-tint text-warning',
+  neutral: 'bg-surface-sunken text-secondary',
+};
+
+export function Badge({ tone, children }: { tone: keyof typeof badgeTones; children: ReactNode }) {
+  return (
+    <span
+      className={`inline-flex h-[22px] items-center whitespace-nowrap rounded-sm px-2 text-[11px] font-bold uppercase leading-none tracking-[0.06em] ${badgeTones[tone]}`}
+    >
+      {children}
+    </span>
+  );
 }
 
 /* ---------- Choice chips (segmented choice) ---------- */

@@ -8,6 +8,7 @@ import {
   restoreItems,
   searchItems,
   type Item,
+  type ItemInput,
 } from '../../backend/database';
 
 export function useItems(onError: (message: string) => void) {
@@ -64,10 +65,10 @@ export function useItems(onError: (message: string) => void) {
     items,
     query,
     setQuery,
-    handleAdd: (name: string, description: string) =>
-      mutate("Couldn't add item", () => addItem(name, description)),
-    handleUpdate: (id: number, name: string, description: string) =>
-      mutate("Couldn't save changes", () => updateItem(id, name, description)),
+    handleAdd: (input: ItemInput) =>
+      mutate("Couldn't add item", () => addItem(input)),
+    handleUpdate: (id: number, input: ItemInput) =>
+      mutate("Couldn't save changes", () => updateItem(id, input)),
     handleDelete: (ids: number[]) =>
       mutate("Couldn't delete", () => deleteItems(ids)),
     handleRestore: (deleted: Item[]) =>

@@ -359,44 +359,44 @@ Back button → h1 "Get your free account" → Social "Continue with Apple" → 
 
 ## 10 · Implementation in this app
 
-The app uses NativeWind (Tailwind for React Native). Register the tokens in `tailwind.config.js` so screens use names (`bg-surface`, `text-secondary`) rather than raw hexes. Dark mode follows `src/utils/ThemeContext.tsx`; give every colour class a `dark:` pair using the Dark column from §01.
+### How the tokens reach the UI
 
-```js
-// tailwind.config.js — theme.extend
-colors: {
-  primary:          { DEFAULT: '#101112', dark: '#F5F5F6' },
-  'primary-hover':  { DEFAULT: '#2E3133', dark: '#E4E6E8' },
-  secondary:        { DEFAULT: '#63686D', dark: '#9BA0A5' },
-  disabled:         { DEFAULT: '#9BA0A5', dark: '#5C6165' },
-  'border-strong':  { DEFAULT: '#8C9297', dark: '#72777C' },
-  border:           { DEFAULT: '#E4E6E8', dark: '#2A2B2D' },
-  surface:          { DEFAULT: '#FFFFFF', dark: '#101112' },
-  'surface-muted':  { DEFAULT: '#F7F8F8', dark: '#1C1D1E' },
-  'surface-sunken': { DEFAULT: '#F1F2F3', dark: '#252627' },
-  accent:           { DEFAULT: '#D33A2C', pressed: '#B62E22', tint: '#FBEDEB', 'tint-dark': '#2C1613' },
-  info:             { DEFAULT: '#2F6BD8', track: '#B9CDF2', tint: '#EDF2FC', 'tint-dark': '#16233B' },
-  success:          { DEFAULT: '#197A4B', dark: '#22A566', tint: '#E8F3EC', 'tint-dark': '#12261C' },
-  warning:          { DEFAULT: '#8A5300', dark: '#C97F1D', tint: '#FBF2E3', 'tint-dark': '#2C2211' },
-  error:            { DEFAULT: '#C4291F', dark: '#E5544A', tint: '#FBEBEA', 'tint-dark': '#2E1614' },
-},
-borderRadius: { none: '0', sm: '4px', md: '8px', lg: '12px', xl: '16px', full: '999px' },
-fontFamily: {
-  sans: ['Archivo'],
-  mono: ['IBMPlexMono'],
-},
-```
+| Piece | File | What it does |
+|---|---|---|
+| Palette + type ramp | `src/theme/tokens.ts` | Light and dark hex values from §01, font family per weight, and the §02 type ramp. Single source of truth. |
+| Theme provider | `src/theme/ThemeContext.tsx` | Resolves System / Light / Dark, then sets every colour as a CSS variable on the root view with NativeWind's `vars()`. Also exposes `colors` for props that can't take a class (icon strokes, placeholder colour, navigation theme). |
+| Tailwind | `tailwind.config.js` | Each colour class is `rgb(var(--token) / <alpha-value>)`, so `bg-surface`, `text-secondary`, `border-border-strong` switch theme automatically — no `dark:` variants needed. |
+| NativeWind build | `global.css`, `metro.config.js`, `babel.config.js` | `withNativeWind` compiles `global.css`; Babel sets `jsxImportSource: 'nativewind'`. Without these, `className` is silently ignored. |
+| Fonts | `src/App.tsx` | Loads Archivo 400–800 and IBM Plex Mono 400/500 via `@expo-google-fonts`. Android needs one family per weight, so text sets `fontFamily` (never `fontWeight`) through the `Text` component. |
 
-Usage: `className="bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"`.
+Usage: `<View className="bg-surface border-b border-border">` and `<Text variant="h2">` / `<Text variant="caption">`.
 
-Fonts: load Archivo and IBM Plex Mono with `expo-font` (`@expo-google-fonts/archivo`, `@expo-google-fonts/ibm-plex-mono`) before rendering the root navigator.
+### Components (`src/components`)
 
-### StockUp screen mapping
-
-| StockUp screen / component | Pattern from this system |
+| Component | Spec |
 |---|---|
-| `screens/Home.tsx` | Root top bar (wordmark "stockup") → search bar → list of `ItemCard`s |
-| `components/ItemCard.tsx` | Order-card shell (radius 12, e1, 1px border); title `h3`, description `text-secondary`, timestamp `mono` |
-| `components/PrimaryButton.tsx` | Button · Primary (52, radius full); pass `variant` for Secondary / Destructive |
-| `screens/ItemForm.tsx` | Field / required for Title, Field / rest for Description; error state from §08 |
-| Delete confirmation | Bottom sheet with a Destructive button — the one permitted use of a red fill |
-| Stock levels | Badges "In stock" / "Low stock" / "Sold out" (use "Out of stock" as the label) |
+| `ui.tsx` → `Text` | §02 type ramp via `variant`; `tone` picks the colour token |
+| `ui.tsx` → `Button` | §06 Buttons: primary / secondary / destructive, 52 / 44 / 36, radius full, pressed scale 0.97 |
+| `ui.tsx` → `IconButton` | 44×44 tap target, `accessibilityLabel` required |
+| `ui.tsx` → `Chip`, `OptionRow` | §06 filter chip (44, radius 8, selected = 1.5px ink + sunken fill); sheet row with ✓ in `accent-pressed` |
+| `ui.tsx` → `TextField` | §06 field: 52 high, radius 8, label above, `Required`, error state, optional trailing slot |
+| `ui.tsx` → `Badge` | §06 badges: In stock / Low stock / Out of stock |
+| `Icon.tsx` | §05 icon set via `react-native-svg`, same drawings as desktop |
+| `TopBar.tsx` | §07 top bar: wordmark on root screens, back + centred title on sub-screens, safe-area aware |
+| `SearchBar.tsx` | §06 search pill: sunken at rest, surface + ink border while typing, "Clear" label |
+| `BottomSheet.tsx` | §06 sheet: 16 top radius, grabber, scrim, 240ms slide; `ConfirmSheet` for destructive confirmation |
+| `Toast.tsx` | 4s toast at the bottom with optional Undo |
+| `ItemRow.tsx` | Inventory list row: name, SKU · category (mono), price, quantity, stock badge |
+
+### Screens
+
+| Screen | Built from |
+|---|---|
+| `screens/Home.tsx` | Root top bar (wordmark, Settings, Add) → `h1` "Inventory" + counts → search → chips (All / Low stock / Out of stock / Sort) → item rows separated by hairlines |
+| `screens/ItemForm.tsx` | Sub-screen top bar → fields (Name required, SKU, Category with suggestion chips, Quantity with −/+ stepper, Low stock at, Unit price, Description) → sticky primary button; Delete item (destructive) + confirmation sheet; "Discard changes?" sheet on back |
+| `screens/Settings.tsx` | Sub-screen top bar → Appearance: System / Light / Dark |
+
+### Not yet implemented from this spec
+
+- The `dictate` mic in every field — phone keyboards already offer dictation; a mic button needs a speech-recognition module.
+- Product imagery, tiles, carousels and the bottom tab bar — StockUp has no images or second top-level section yet.

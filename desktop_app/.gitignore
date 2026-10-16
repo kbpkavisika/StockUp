@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local SQLite databases (the app stores its data in the OS app-data folder)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

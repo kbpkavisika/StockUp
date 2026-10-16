@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { Item } from '../../backend/database';
-import { formatTimestamp } from '../utils/format';
-import type { Density, SortKey } from '../utils/sort';
-import Icon from './Icon';
 import { useMenuAnchor } from '../hooks/useMenuAnchor';
-import { Checkbox, IconButton, Menu } from './ui';
+import type { Density, SortKey } from '../utils/sort';
+import { formatPrice, formatQuantity, STOCK_LABELS, stockStatus } from '../utils/stock';
+import Icon from './Icon';
+import { Badge, Checkbox, IconButton, Menu } from './ui';
 
 const PAGE_SIZE = 50;
 
@@ -133,9 +133,10 @@ export default function ItemList({
       <table className="w-full table-fixed border-separate border-spacing-0 text-body">
         <colgroup>
           <col className="w-12" />
-          <col className="w-[32%]" />
           <col />
-          <col className="w-44" />
+          <col className="w-24" />
+          <col className="w-28" />
+          <col className="w-36" />
           <col className="w-24" />
         </colgroup>
         <thead>
@@ -154,15 +155,21 @@ export default function ItemList({
               direction={sort === 'name-asc' ? 'asc' : sort === 'name-desc' ? 'desc' : null}
               onClick={() => onSortChange(sort === 'name-asc' ? 'name-desc' : 'name-asc')}
             />
-            <th scope="col" className={headerCell}>
-              Description
-            </th>
             <SortHeader
-              label="Added"
-              className={headerCell}
-              direction={sort === 'oldest' ? 'asc' : sort === 'newest' ? 'desc' : null}
-              onClick={() => onSortChange(sort === 'newest' ? 'oldest' : 'newest')}
+              label="Qty"
+              className={`${headerCell} text-right`}
+              direction={sort === 'quantity-asc' ? 'asc' : sort === 'quantity-desc' ? 'desc' : null}
+              onClick={() => onSortChange(sort === 'quantity-asc' ? 'quantity-desc' : 'quantity-asc')}
             />
+            <SortHeader
+              label="Price"
+              className={`${headerCell} text-right`}
+              direction={sort === 'price-asc' ? 'asc' : sort === 'price-desc' ? 'desc' : null}
+              onClick={() => onSortChange(sort === 'price-asc' ? 'price-desc' : 'price-asc')}
+            />
+            <th scope="col" className={headerCell}>
+              Status
+            </th>
             <th scope="col" className={`${headerCell} text-right`}>
               <span className="sr-only">Actions</span>
             </th>
@@ -191,13 +198,15 @@ export default function ItemList({
                   {isSelected && <span aria-hidden="true" className="absolute inset-y-0 left-0 w-[3px] bg-primary" />}
                   <Checkbox checked={isSelected} label={`Select ${item.name}`} tabIndex={-1} onChange={() => toggleRow(item)} />
                 </td>
-                <td className={`${cell} truncate font-semibold`} title={item.name}>
-                  {item.name}
+                <td className={cell} title={item.description ? `${item.name}\n${item.description}` : item.name}>
+                  <div className="truncate font-semibold">{item.name}</div>
+                  {density === 'comfortable' && <ItemMeta item={item} />}
                 </td>
-                <td className={`${cell} truncate text-secondary`} title={item.description || undefined}>
-                  {item.description || '—'}
+                <td className={`${cell} text-right font-mono`}>{formatQuantity(item.quantity)}</td>
+                <td className={`${cell} text-right font-mono`}>{formatPrice(item.price_cents)}</td>
+                <td className={cell}>
+                  <StockBadge item={item} />
                 </td>
-                <td className={`${cell} whitespace-nowrap font-mono text-caption text-secondary`}>{formatTimestamp(item.timestamp)}</td>
                 <td className={`${cell} pr-3 text-right`}>
                   <div
                     className={`inline-flex gap-1 transition-opacity duration-[120ms] ${
@@ -304,6 +313,31 @@ export default function ItemList({
       )}
     </div>
   );
+}
+
+/** Second line under the name: SKU · category, falling back to the description */
+function ItemMeta({ item }: { item: Item }) {
+  if (!item.sku && !item.category && !item.description) return null;
+  return (
+    <div className="truncate text-[12px] leading-4 text-secondary">
+      {item.sku || item.category ? (
+        <>
+          {item.sku && <span className="font-mono">{item.sku}</span>}
+          {item.sku && item.category && ' · '}
+          {item.category}
+        </>
+      ) : (
+        item.description
+      )}
+    </div>
+  );
+}
+
+const STOCK_TONES = { in: 'success', low: 'warning', out: 'neutral' } as const;
+
+function StockBadge({ item }: { item: Item }) {
+  const status = stockStatus(item);
+  return <Badge tone={STOCK_TONES[status]}>{STOCK_LABELS[status]}</Badge>;
 }
 
 function SortHeader({

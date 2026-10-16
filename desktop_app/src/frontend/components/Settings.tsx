@@ -1,13 +1,9 @@
 import { useContext } from 'react';
 import type { ReactNode } from 'react';
-import { dbPath } from '../../backend/database';
 import { ThemeContext, type ThemePreference } from '../theme';
 import type { Density } from '../utils/sort';
 import PageHeader from './PageHeader';
-import { Button, ChoiceGroup } from './ui';
-
-type ElectronShell = { shell: { showItemInFolder: (path: string) => void } };
-const electron = (window as unknown as { require: (name: 'electron') => ElectronShell }).require('electron');
+import { ChoiceGroup } from './ui';
 
 /** DESIGN.md §09 screen 05 · Settings */
 export default function Settings({ density, onDensityChange }: { density: Density; onDensityChange: (density: Density) => void }) {
@@ -43,14 +39,6 @@ export default function Settings({ density, onDensityChange }: { density: Densit
               />
             </Row>
           </Section>
-
-          <Section title="Data">
-            <Row label="Database location" hint={dbPath} hintMono>
-              <Button size="sm" onClick={() => electron.shell.showItemInFolder(dbPath)}>
-                Show in folder
-              </Button>
-            </Row>
-          </Section>
         </div>
       </div>
     </>
@@ -66,12 +54,12 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Row({ label, hint, hintMono = false, children }: { label: string; hint: string; hintMono?: boolean; children: ReactNode }) {
+function Row({ label, hint, children }: { label: string; hint: string; children: ReactNode }) {
   return (
     <div className="flex min-h-14 items-center gap-6 border-b border-border py-3">
       <div className="min-w-0 flex-1">
         <div className="text-label font-semibold">{label}</div>
-        <div className={`mt-0.5 truncate text-caption text-secondary ${hintMono ? 'font-mono' : ''}`} title={hint}>
+        <div className="mt-0.5 truncate text-caption text-secondary" title={hint}>
           {hint}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import type { Item } from '../backend/database';
+import type { Item, ItemInput } from '../backend/database';
 import ConfirmDialog from './components/ConfirmDialog';
 import EmptyState from './components/EmptyState';
 import ItemForm from './components/ItemForm';
@@ -58,9 +58,9 @@ function App() {
     requestAnimationFrame(() => searchRef.current?.focus());
   };
 
-  const saveItem = (name: string, description: string) => {
+  const saveItem = (input: ItemInput) => {
     const existing = editor?.item;
-    const ok = existing ? handleUpdate(existing.id, name, description) : handleAdd(name, description);
+    const ok = existing ? handleUpdate(existing.id, input) : handleAdd(input);
     if (ok) showToast(existing ? 'Changes saved' : 'Item added');
     return ok;
   };
